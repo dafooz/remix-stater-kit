@@ -1,0 +1,144 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+model Organisation {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  uuid          String    @unique
+  name          String    @unique
+  description   String
+  image         String?
+  personal      String?   @unique
+  adminIds      String[]  @db.ObjectId
+  admins        User[]    @relation("organisationAdmin", fields: [adminIds], references: [id])
+  maintainerIds String[]  @db.ObjectId
+  maintainers   User[]    @relation("organisationMaintainer", fields: [maintainerIds], references: [id])
+  memberIds     String[]  @db.ObjectId
+  members       User[]    @relation("organisationMember", fields: [memberIds], references: [id])
+  projectIds    String[]
+  projects      Project[] @relation("belongsTo")
+  rulesIds      String[]  @db.ObjectId
+  rules         Rule[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("organisations")
+}
+
+model User {
+  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
+  userName                  String         @unique @map("username")
+  displayName               String         @map("display_name")
+  givenName                 String?        @map("given_name")
+  familyName                String?        @map("family_name")
+  email                     String         @unique
+  emailVerified             String?        @map("email_verified")
+  image                     String?
+  accounts                  Account[]
+  locale                    String?
+  createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
+  organisationAdmin         Organisation[] @relation("organisationAdmin", fields: [organisationsAdminId], references: [id])
+  organisationsAdminId      String[]       @db.ObjectId
+  organisationMaintainer    Organisation[] @relation("organisationMaintainer", fields: [organisationsMaintainerId], references: [id])
+  organisationsMaintainerId String[]       @db.ObjectId
+  organisationMember        Organisation[] @relation("organisationMember", fields: [organisationsMemberId], references: [id])
+  organisationsMemberId     String[]       @db.ObjectId
+
+  projectAdminOf       Project[] @relation("projectAdminOf", fields: [projectsAdminId], references: [id])
+  projectsAdminId      String[]  @db.ObjectId
+  projectMaintainerOf  Project[] @relation("projectMaintainerOf", fields: [projectsMaintainerId], references: [id])
+  projectsMaintainerId String[]  @db.ObjectId
+  projectMemberOf      Project[] @relation("projectMemberOf", fields: [projectsMemberId], references: [id])
+  projectsMemberId     String[]  @db.ObjectId
+
+  @@map("users")
+}
+
+model Project {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  uuid           String       @unique
+  name           String
+  description    String
+  image          String?
+  color          String?
+  adminIds       String[]     @db.ObjectId
+  admins         User[]       @relation("projectAdminOf", fields: [adminIds], references: [id])
+  maintainerIds  String[]     @db.ObjectId
+  maintainers    User[]       @relation("projectMaintainerOf", fields: [maintainerIds], references: [id])
+  memberIds      String[]     @db.ObjectId
+  members        User[]       @relation("projectMemberOf", fields: [memberIds], references: [id])
+  organisationId String
+  organisation   Organisation @relation("belongsTo", fields: [organisationId], references: [uuid])
+  bundleIds      String[]     @db.ObjectId
+  bundles        Bundle[]
+  ruleIds        String[]     @db.ObjectId
+  rules          Rule[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([name, organisationId])
+  @@map("projects")
+}
+
+model Bundle {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  displayText String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [uuid])
+  ruleIds     String[] @db.ObjectId
+  rules       Rule[]   @relation(fields: [ruleIds], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("bundles")
+}
+
+model Rule {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  minValue       String
+  maxValue       String?
+  displayText    String
+  projectId      String?       @db.ObjectId
+  project        Project?      @relation(fields: [projectId], references: [id])
+  organisationId String?       @db.ObjectId
+  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  bundleIds      String[]      @db.ObjectId
+  bundles        Bundle[]      @relation(fields: [bundleIds], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("rules")
+}
+
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  // session_state      String?
+  // oauth_token_secret String?
+  // oauth_token        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}

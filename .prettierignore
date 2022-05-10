@@ -1,0 +1,10 @@
+**/.next/cache
+dist/
+**/out-tsc
+k8s
+.next
+.github/actions/**/*.{js,md,yml,yaml}
+.github/actions/**/dist
+!.github/actions/**/*.js
+.tx
+charts

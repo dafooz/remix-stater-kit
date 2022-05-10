@@ -1,0 +1,5 @@
+// export function ErrorBoundary({ error }: { error: Error }) {
+//   console.error(error);
+
+//   return <div>{`There was an error loading your user. Sorry.`}</div>;
+// }

@@ -1,0 +1,42 @@
+{
+  "extends": "next/core-web-vitals",
+  "plugins": ["react-hooks", "unused-imports"],
+  "rules": {
+    // Enable `eslint-plugin-react-hooks`
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
+    // Airbnb's default is a bit restrictive for `devDependencies`, let's turn it on for all
+    // https://github.com/airbnb/javascript/blob/96f95fa35e23f015448445b8d5bb7ac8e03a739a/packages/eslint-config-airbnb-base/rules/imports.js#L71-L95
+    "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    // Let's use common sense and when a default export is really needed, such as
+    // for a Next.js page component, we use it. Leave the decision to the dev.
+    "import/prefer-default-export": "off",
+    // Organize imports using ESLint, with some added whitespace for readability.
+    // Also, we'll force alphbetical ordering inside the groups, and force React as the first import.
+    "import/order": [
+      "error",
+      {
+        "alphabetize": { "order": "asc", "caseInsensitive": true },
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "pathGroups": [{ "pattern": "react", "group": "external", "position": "before" }],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "always"
+      }
+    ],
+    // Finds and remove unused es6 modules with `eslint-plugin-unused-import`.
+    // Using the default recommended usage:
+    // https://github.com/sweepline/eslint-plugin-unused-imports#usage
+    "no-unused-vars": "off",
+    "require-await": "warn",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
+    ],
+    // Also needed for `eslint-plugin-unused-import` since we use React,
+    // otherwise all imports for components will be reported unuse:
+    // https://github.com/sweepline/eslint-plugin-unused-imports#react
+    "react/jsx-uses-react": ["error"],
+    "react/jsx-uses-vars": "error"
+  }
+}
